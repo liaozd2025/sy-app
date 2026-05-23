@@ -1,0 +1,18 @@
+
+
+function changed {
+    git diff --name-only HEAD@{1} HEAD | grep "^$1" >/dev/null 2>&1
+}
+
+echo 'Checking for changes in pnpm-lock.yaml...'
+
+if changed 'pnpm-lock.yaml'; then
+    echo "📦 pnpm-lock.yaml changed. Run corepack pnpm install to bring your dependencies up to date."
+    corepack pnpm install
+fi
+
+echo 'You are up to date :)'
+
+echo 'If necessary, you can run pnpm run mobile:prebuild to generate native code.'
+
+exit 0
