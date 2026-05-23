@@ -1,0 +1,41 @@
+{
+  "name": "yixiang-platform",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.12.3",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "prepare": "husky",
+    "start": "corepack pnpm run mobile:start",
+    "web": "corepack pnpm run mobile:web",
+    "ios": "corepack pnpm run mobile:ios",
+    "android": "corepack pnpm run mobile:android",
+    "prebuild": "corepack pnpm run mobile:prebuild",
+    "doctor": "corepack pnpm run mobile:doctor",
+    "mobile:start": "corepack pnpm --dir apps/mobile run start",
+    "mobile:web": "corepack pnpm --dir apps/mobile run web",
+    "mobile:ios": "corepack pnpm --dir apps/mobile run ios",
+    "mobile:android": "corepack pnpm --dir apps/mobile run android",
+    "mobile:prebuild": "corepack pnpm --dir apps/mobile run prebuild",
+    "mobile:doctor": "corepack pnpm --dir apps/mobile run doctor",
+    "lint": "corepack pnpm --dir apps/mobile run lint",
+    "lint:translations": "corepack pnpm --dir apps/mobile run lint:translations",
+    "type-check": "corepack pnpm --dir apps/mobile run type-check",
+    "test": "corepack pnpm --dir apps/mobile run test",
+    "test:ci": "corepack pnpm --dir apps/mobile run test:ci",
+    "test:watch": "corepack pnpm --dir apps/mobile run test:watch",
+    "check-all": "corepack pnpm run lint && corepack pnpm run type-check && corepack pnpm run lint:translations && corepack pnpm run test",
+    "install-maestro": "curl -Ls 'https://get.maestro.mobile.dev' | bash",
+    "e2e-test": "corepack pnpm --dir apps/mobile run e2e-test",
+    "app-release": "corepack pnpm --dir apps/mobile run app-release",
+    "lint-staged": "lint-staged",
+    "commitlint": "commitlint"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "typescript": "^5.9.3"
+  }
+}
