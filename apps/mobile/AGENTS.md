@@ -14,6 +14,37 @@ The first demo focuses on five bottom tabs:
 
 This version uses local mock data only. It does not include real login, payment, livestream push, video SDK, CMS, or backend APIs.
 
+## v1 产品定位（必读 — 详见 PRD）
+
+**颐享平台是面向一级经销商的"严肃打卡型" B 端培训 App**，不是 C 端品牌产品。所有功能围绕"看直播 → 学课程 → 答题 → 攒积分 → 兑福利"的内向闭环。
+
+**唯一事实来源**：
+- 产品需求 → [`../../docs/prd-v1.md`](../../docs/prd-v1.md)
+- 领域术语 → [`../../CONTEXT.md`](../../CONTEXT.md)
+- 关键决策 → [`../../server/docs/adr/`](../../server/docs/adr/)
+- API 契约 → [`../../packages/api-contracts/openapi.yaml`](../../packages/api-contracts/openapi.yaml)
+
+**v1 明确不做（即使原型/DB 已有也不要启用）**：
+
+| 模块 | 状态 | 原因 |
+|------|------|------|
+| 社区 Feed / 评论 / 收藏 / 点赞 / 关注 | UI 隐藏，DB 保留 | ADR-0007 |
+| 分享给客户 / 海报生成 | v2 | ADR-0007 |
+| 排行榜 | v2 | ADR-0007 |
+| 推送通道（APNs/FCM/极光） | 不接 | ADR-0006 |
+| 短信通知（非登录场景） | 不接 | ADR-0006 |
+| 直播间自建聊天 / 资料下载 / 互动 | 全交火山引擎 | ADR-0005 |
+| 直播与课程关联 | 解耦 | ADR-0004 |
+| 简答题 / 防作弊 / 及格线 / 认证考 | 不做 | ADR-0003 |
+| 实物商城物流 / ERP 对接 | 不做 | ADR-0008 |
+
+**v1 做但易混淆的细节**：
+
+- 直播间页面 = **纯 WebView**，不在直播间内叠加任何聊天 / 互动 / 资料 UI
+- 公告 = **仅 App 内首页置顶 + 通知中心**，不推送、不发短信
+- 兑换福利 = 拿"兑换码"，**线下发货**，App 不参与物流
+- 晶升等级 = **纯虚拟身份**，不联动进货价/返点
+
 ## Stack
 
 - Expo SDK 54 with React Native 0.81.5 and React 19.

@@ -2,6 +2,12 @@
 
 本仓库以 `AGENTS.md` 作为唯一事实来源；本文件只保留 Claude Code 高频执行规则，避免两份说明漂移。
 
+## 必读文档（开始任何 vibe coding 前）
+
+- 产品需求 → [`../../docs/prd-v1.md`](../../docs/prd-v1.md)（v1 范围）
+- 领域术语 → [`../../CONTEXT.md`](../../CONTEXT.md)
+- v1 明确不做项 / 关键决策 → 见 `apps/mobile/AGENTS.md` "v1 产品定位"段
+
 
 ## 关键约定
 

@@ -1,0 +1,466 @@
+openapi: 3.0.3
+info:
+  title: 颐享健康直播学习平台 API (v1)
+  version: 0.1.0
+  description: |
+    颐享健康私域直播培训平台 API 契约（v1 骨架）。
+
+    **决策来源**：[docs/prd-v1.md](../../docs/prd-v1.md) §8
+
+    **分离原则**（PRD P7）：
+    - `/api/app/v1/**`：移动端 App 使用，鉴权使用学员手机号 token
+    - `/api/admin/v1/**`：总部 admin-web 使用，鉴权使用 Shiro 权限
+
+    **状态**：v1 骨架阶段，端点定义为主，详细 schema 在后续迭代中补全。
+
+servers:
+  - url: https://api.yixiang.example.com
+    description: 生产环境（待定）
+  - url: http://localhost:8080
+    description: 本地开发
+
+tags:
+  - name: app-auth
+    description: App 端 - 登录与会话
+  - name: app-home
+    description: App 端 - 首页
+  - name: app-course
+    description: App 端 - 课程与章节
+  - name: app-live
+    description: App 端 - 直播
+  - name: app-quiz
+    description: App 端 - 答题
+  - name: app-points
+    description: App 端 - 积分账户与流水
+  - name: app-reward
+    description: App 端 - 积分商城与兑换码
+  - name: app-announcement
+    description: App 端 - 公告与通知
+  - name: app-me
+    description: App 端 - 个人中心
+  - name: app-content
+    description: App 端 - 健康内容与百科
+  - name: admin-org
+    description: Admin 端 - 经销商公司
+  - name: admin-member
+    description: Admin 端 - 学员（含白名单导入）
+  - name: admin-course
+    description: Admin 端 - 课程
+  - name: admin-quiz
+    description: Admin 端 - 题库
+  - name: admin-live
+    description: Admin 端 - 直播场次
+  - name: admin-content
+    description: Admin 端 - 内容
+  - name: admin-encyclopedia
+    description: Admin 端 - 百科
+  - name: admin-reward
+    description: Admin 端 - 福利与兑换码
+  - name: admin-announcement
+    description: Admin 端 - 公告
+  - name: admin-creator
+    description: Admin 端 - 讲师
+  - name: admin-dashboard
+    description: Admin 端 - 数据看板
+
+paths:
+  # ========================================================
+  # App 端：登录
+  # ========================================================
+  /api/app/v1/auth/send-sms:
+    post:
+      tags: [app-auth]
+      summary: 发送登录短信验证码
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone:
+                  type: string
+                  example: "13800138000"
+      responses:
+        '200':
+          description: OK
+
+  /api/app/v1/auth/login:
+    post:
+      tags: [app-auth]
+      summary: 短信验证码登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, smsCode]
+              properties:
+                phone: { type: string }
+                smsCode: { type: string }
+      responses:
+        '200':
+          description: 返回访问 token
+
+  # ========================================================
+  # App 端：首页
+  # ========================================================
+  /api/app/v1/home/feed:
+    get:
+      tags: [app-home]
+      summary: 首页 Feed（公告横幅 + 必修课 + 直播预告 + 推荐 + 每日一题）
+      security: [{ AppToken: [] }]
+      responses:
+        '200':
+          description: OK
+
+  # ========================================================
+  # App 端：课程
+  # ========================================================
+  /api/app/v1/courses:
+    get:
+      tags: [app-course]
+      summary: 课程列表
+      security: [{ AppToken: [] }]
+      parameters:
+        - name: type
+          in: query
+          schema: { type: string, enum: [required, elective] }
+      responses:
+        '200': { description: OK }
+
+  /api/app/v1/courses/{id}:
+    get:
+      tags: [app-course]
+      summary: 课程详情（含章节列表 + 我的进度）
+      security: [{ AppToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: OK }
+
+  /api/app/v1/courses/{id}/chapters/{chapterId}/complete:
+    post:
+      tags: [app-course]
+      summary: 上报章节完成（含播放进度 / 阅读时长 / 答题结果）
+      security: [{ AppToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: chapterId, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                progressPercent: { type: integer, minimum: 0, maximum: 100 }
+                durationSeconds: { type: integer }
+      responses:
+        '200': { description: OK }
+
+  # ========================================================
+  # App 端：直播
+  # ========================================================
+  /api/app/v1/lives:
+    get:
+      tags: [app-live]
+      summary: 直播列表
+      security: [{ AppToken: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [upcoming, live, playback, ended] }
+      responses:
+        '200': { description: OK }
+
+  /api/app/v1/lives/{id}:
+    get:
+      tags: [app-live]
+      summary: 直播详情（含火山引擎直播间 URL）
+      security: [{ AppToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: |
+            返回 livePlatformUrl 字段供 WebView 加载。
+            URL 由后端按 liveId + memberId 动态生成。
+
+  /api/app/v1/lives/{id}/reserve:
+    post:
+      tags: [app-live]
+      summary: 预约直播
+      security: [{ AppToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: OK }
+
+  /api/app/v1/lives/{id}/watch-report:
+    post:
+      tags: [app-live]
+      summary: 上报直播观看时长（用于积分与完成判定）
+      security: [{ AppToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enterTime: { type: string, format: date-time }
+                leaveTime: { type: string, format: date-time }
+                watchSeconds: { type: integer }
+      responses:
+        '200': { description: OK }
+
+  # ========================================================
+  # App 端：答题
+  # ========================================================
+  /api/app/v1/quiz/daily:
+    get:
+      tags: [app-quiz]
+      summary: 今日每日一题（如已答返回结果）
+      security: [{ AppToken: [] }]
+      responses:
+        '200': { description: OK }
+
+  /api/app/v1/quiz/{id}/answer:
+    post:
+      tags: [app-quiz]
+      summary: 提交答题
+      security: [{ AppToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [selectedAnswer]
+              properties:
+                selectedAnswer: { type: string, description: "单选返回字母；多选/判断返回字母序列" }
+                source: { type: string, enum: [daily, chapter, final-exam] }
+      responses:
+        '200': { description: 返回是否正确 + 获得积分 }
+
+  # ========================================================
+  # App 端：积分
+  # ========================================================
+  /api/app/v1/points/account:
+    get:
+      tags: [app-points]
+      summary: 我的积分账户（含晶升等级）
+      security: [{ AppToken: [] }]
+      responses:
+        '200': { description: OK }
+
+  /api/app/v1/points/log:
+    get:
+      tags: [app-points]
+      summary: 积分流水
+      security: [{ AppToken: [] }]
+      parameters:
+        - { name: pageNum, in: query, schema: { type: integer, default: 1 } }
+        - { name: pageSize, in: query, schema: { type: integer, default: 20 } }
+      responses:
+        '200': { description: OK }
+
+  # ========================================================
+  # App 端：积分商城
+  # ========================================================
+  /api/app/v1/rewards:
+    get:
+      tags: [app-reward]
+      summary: 可兑换福利列表
+      security: [{ AppToken: [] }]
+      responses:
+        '200': { description: OK }
+
+  /api/app/v1/rewards/{itemId}/exchange:
+    post:
+      tags: [app-reward]
+      summary: 兑换福利（扣积分 + 取兑换码，事务保证）
+      security: [{ AppToken: [] }]
+      parameters:
+        - { name: itemId, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 返回兑换码字符串 }
+        '409': { description: 库存不足 / 积分不足 }
+
+  /api/app/v1/rewards/my-codes:
+    get:
+      tags: [app-reward]
+      summary: 我的兑换码列表
+      security: [{ AppToken: [] }]
+      responses:
+        '200': { description: OK }
+
+  # ========================================================
+  # App 端：公告
+  # ========================================================
+  /api/app/v1/announcements:
+    get:
+      tags: [app-announcement]
+      summary: 公告列表（含未读状态）
+      security: [{ AppToken: [] }]
+      responses:
+        '200': { description: OK }
+
+  /api/app/v1/announcements/{id}/read:
+    post:
+      tags: [app-announcement]
+      summary: 标记公告已读
+      security: [{ AppToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: OK }
+
+  # ========================================================
+  # App 端：个人中心
+  # ========================================================
+  /api/app/v1/me:
+    get:
+      tags: [app-me]
+      summary: 我的个人信息（含晶升等级、积分、所属公司）
+      security: [{ AppToken: [] }]
+      responses:
+        '200': { description: OK }
+
+  /api/app/v1/me/learning-summary:
+    get:
+      tags: [app-me]
+      summary: 我的学习汇总（必修进度、累计学时、完成课程数）
+      security: [{ AppToken: [] }]
+      responses:
+        '200': { description: OK }
+
+  # ========================================================
+  # App 端：内容与百科
+  # ========================================================
+  /api/app/v1/contents:
+    get:
+      tags: [app-content]
+      summary: 健康内容列表
+      security: [{ AppToken: [] }]
+      parameters:
+        - name: kind
+          in: query
+          schema: { type: string, enum: [article, video] }
+      responses:
+        '200': { description: OK }
+
+  /api/app/v1/contents/{id}:
+    get:
+      tags: [app-content]
+      summary: 健康内容详情
+      security: [{ AppToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: OK }
+
+  /api/app/v1/encyclopedia:
+    get:
+      tags: [app-content]
+      summary: 百科词条列表
+      security: [{ AppToken: [] }]
+      parameters:
+        - name: category
+          in: query
+          schema: { type: string, enum: [season, food, habit] }
+      responses:
+        '200': { description: OK }
+
+  /api/app/v1/encyclopedia/{id}:
+    get:
+      tags: [app-content]
+      summary: 百科词条详情
+      security: [{ AppToken: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: OK }
+
+  # ========================================================
+  # Admin 端：所有端点遵循 RuoYi 风格，受 Shiro 权限保护
+  # 详细权限码见 PRD §8.2
+  # 此处仅列骨架占位，详细 schema 在 v1.1 补全
+  # ========================================================
+  /api/admin/v1/orgs:
+    get:
+      tags: [admin-org]
+      summary: 经销商公司列表
+      security: [{ AdminToken: [live:org:list] }]
+      responses:
+        '200': { description: OK }
+
+  /api/admin/v1/members/import:
+    post:
+      tags: [admin-member]
+      summary: 批量导入学员白名单（手机号 + 公司归属）
+      security: [{ AdminToken: [live:member:import] }]
+      responses:
+        '200': { description: OK }
+
+  /api/admin/v1/courses/{id}/publish:
+    post:
+      tags: [admin-course]
+      summary: 发布课程（含必修标记 + 截止时间）
+      security: [{ AdminToken: [live:course:publish] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: OK }
+
+  /api/admin/v1/reward-codes/upload:
+    post:
+      tags: [admin-reward]
+      summary: 批量上传福利兑换码
+      security: [{ AdminToken: [live:reward-code:import] }]
+      responses:
+        '200': { description: OK }
+
+  /api/admin/v1/announcements:
+    post:
+      tags: [admin-announcement]
+      summary: 创建公告
+      security: [{ AdminToken: [live:announcement:add] }]
+      responses:
+        '200': { description: OK }
+
+  /api/admin/v1/dashboard/overview:
+    get:
+      tags: [admin-dashboard]
+      summary: 总览看板（DAU / 学习时长 / 必修完成率）
+      security: [{ AdminToken: [live:dashboard:view] }]
+      responses:
+        '200': { description: OK }
+
+components:
+  securitySchemes:
+    AppToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: App 学员 token（手机号登录获取）
+    AdminToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Admin 管理员 token（用户名密码登录获取）
+
+# =====================================================================
+# v1.1 待补全：
+# - 所有 200 响应的详细 schema (components/schemas 下)
+# - 错误响应 schema (ApiError 等)
+# - 分页参数标准化
+# - WebHook 端点（火山引擎回调 / 短信回调）
+# =====================================================================
