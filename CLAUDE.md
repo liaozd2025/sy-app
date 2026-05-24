@@ -10,7 +10,7 @@
 |------|------|
 | 移动端 APP | Expo + React Native + Tailwind CSS |
 | 后台管理 Web | React |
-| 后端服务 | Java 17 + Spring Boot 3.x + Spring Cloud |
+| 后端服务 | Java 17 + Spring Boot 4.0.3 + Shiro 2.1.0 (jakarta) + MyBatis 4.0.1 |
 | 包管理 | pnpm (corepack) |
 
 ## Monorepo 结构
@@ -20,15 +20,21 @@ sy-app/
 ├── apps/
 │   ├── mobile/          # Expo React Native 应用
 │   │   ├── ios/         # iOS 原生项目 (Expo prebuild)
-│   │   ├── android/      # Android 原生项目 (Expo prebuild)
-│   │   └── ...
+│   │   └── android/     # Android 原生项目 (Expo prebuild)
 │   └── admin-web/       # React 后台管理 (预留)
 ├── packages/
 │   └── api-contracts/   # OpenAPI 契约与生成的客户端
-├── services/
-│   └── api/              # Java Spring Boot 后端 (预留)
-├── docs/                 # 产品与架构文档
-└── cli/                  # CLI 工具
+├── server/              # Java Spring Boot 后端 (Maven 多模块)
+│   ├── dh-admin/       # 启动模块
+│   ├── dh-framework/   # 核心框架
+│   ├── dh-system/      # 系统模块
+│   ├── dh-quartz/      # 定时任务
+│   ├── dh-generator/   # 代码生成
+│   ├── dh-common/      # 通用工具
+│   ├── sql/            # SQL 脚本
+│   └── bin/            # 启动脚本
+├── docs/               # 产品与架构文档
+└── cli/                # CLI 工具
 ```
 
 ## 常用命令
@@ -59,7 +65,7 @@ corepack pnpm run test
 
 - `apps/mobile`: 可运行的 Expo 原型，使用本地 mock 数据
 - `apps/admin-web`: 预留占位
-- `services/api`: 预留占位，尚未创建 Spring Boot 项目
+- `server/`: Java Spring Boot 后端，基于 RuoYi-Vue-Plus（已剥离原项目的分销业务，保留系统骨架与代码生成器）
 - `packages/api-contracts`: 预留占位，尚未创建 schema
 
 ## 重要路径

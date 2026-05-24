@@ -10,8 +10,7 @@ apps/
   admin-web/     # React 后台管理预留目录
 packages/
   api-contracts/ # OpenAPI / 生成的 TypeScript client 预留目录
-services/
-  api/           # Spring Boot 后端服务预留目录
+server/          # Java Spring Boot 后端（Maven 多模块：dh-admin / dh-framework / dh-system / dh-quartz / dh-generator / dh-common）
 docs/            # 跨端架构、学习和产品文档
 ```
 
