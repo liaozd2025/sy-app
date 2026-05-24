@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>典恒分销管理平台</title>
+    <meta name="description" content="典恒分销管理平台">
+    <link href="../static/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+    <link href="../static/css/font-awesome.min.css" th:href="@{/css/font-awesome.min.css}" rel="stylesheet"/>
+    <link href="../static/css/style.min.css" th:href="@{/css/style.min.css}" rel="stylesheet"/>
+    <link href="../static/css/login.min.css" th:href="@{/css/login.min.css}" rel="stylesheet"/>
+    <link href="../static/dh/css/ry-ui.css" th:href="@{/dh/css/ry-ui.css?v=4.8.3}" rel="stylesheet"/>
+    <!-- 360浏览器急速模式 -->
+    <meta name="renderer" content="webkit">
+    <!-- 避免IE使用兼容模式 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="shortcut icon" href="../static/favicon.ico" th:href="@{favicon.ico}"/>
+    <style type="text/css">
+        label.error {
+            position: inherit;
+            display: block;
+            margin-top: 6px;
+            color: #d93026;
+            font-weight: 400;
+        }
+
+        body.signin {
+            min-height: 100vh;
+            margin: 0;
+            background: #f3f3f4 !important;
+            color: #676a6c;
+            overflow-x: hidden;
+        }
+
+        body.signin:before,
+        body.signin:after {
+            display: none;
+        }
+
+        .signinpanel {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1060px;
+            margin: 0 auto;
+            padding: 64px 24px 24px;
+            color: #676a6c;
+        }
+
+        .signinpanel .row {
+            margin: 0 -16px;
+            display: flex;
+            align-items: stretch;
+        }
+
+        .signinpanel .col-sm-7,
+        .signinpanel .col-sm-5 {
+            padding: 0 16px;
+        }
+
+        .signinpanel .col-sm-7 {
+            width: 58.33333333%;
+        }
+
+        .signinpanel .col-sm-5 {
+            width: 41.66666667%;
+        }
+
+        .signinpanel [class*="col-sm-"] {
+            float: none;
+        }
+
+        .signin-info {
+            position: relative;
+            height: 100%;
+            min-height: 560px;
+            padding: 62px 34px 40px 10px;
+        }
+
+        .logopanel {
+            margin-bottom: 14px;
+        }
+
+        .brand-mark {
+            display: none;
+        }
+
+        .brand-name {
+            margin: 0 0 14px;
+            font-size: 34px;
+            line-height: 1.2;
+            font-weight: 600;
+            color: #1c2530;
+            letter-spacing: 0;
+        }
+
+        .brand-subtitle {
+            max-width: 500px;
+            margin: 0 0 26px;
+            font-size: 16px;
+            line-height: 1.9;
+            color: #7e8b99;
+        }
+
+        .brand-caption {
+            display: block;
+            margin-bottom: 12px;
+            color: #5b9bd5;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0;
+        }
+
+        .brand-section-title {
+            margin: 0 0 18px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #8b98a7;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        .feature-grid {
+            display: block;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .feature-grid li {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 0;
+            color: #4f5f6f;
+            font-size: 14px;
+            font-weight: 400;
+            border-top: 1px solid #e7eaec;
+        }
+
+        .feature-grid li:last-child {
+            border-bottom: 1px solid #e7eaec;
+        }
+
+        .feature-grid .feature-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            background: #f0f7fd;
+            color: #5b9bd5;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .feature-body strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #1c2530;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .feature-body span {
+            display: block;
+            line-height: 1.7;
+            color: #7e8b99;
+        }
+
+        .register-entry {
+            margin-top: 22px;
+            color: #7e8b99;
+            font-size: 14px;
+        }
+
+        .register-entry a {
+            color: #5b9bd5;
+            font-weight: 600;
+        }
+
+        .login-card {
+            height: 100%;
+            min-height: 560px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 0;
+        }
+
+        .signinpanel form {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 36px 32px 30px;
+            background: #ffffff;
+            border: 1px solid #e7eaec;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-eyebrow {
+            display: block;
+            margin-bottom: 10px;
+            padding: 0;
+            background: transparent;
+            color: #5b9bd5;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0;
+        }
+
+        .form-title {
+            margin: 0;
+            font-size: 28px;
+            line-height: 1.2;
+            font-weight: 600;
+            color: #1c2530;
+        }
+
+        .form-subtitle {
+            margin: 10px 0 24px;
+            color: #7e8b99;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .signinpanel .form-control {
+            height: 42px;
+            margin-top: 0;
+            border-radius: 6px;
+            border: 1px solid #d2d6de;
+            box-shadow: none;
+            color: #1f2937;
+            background-color: #ffffff;
+            background-image: none !important;
+            padding: 10px 12px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .signinpanel .form-control + .form-control {
+            margin-top: 14px;
+        }
+
+        .signinpanel .form-control:focus {
+            border-color: #66afe9;
+            background-color: #ffffff;
+            box-shadow: 0 0 6px rgba(102, 175, 233, 0.25);
+        }
+
+        .signinpanel .captcha-row {
+            margin-top: 14px;
+        }
+
+        .signinpanel .captcha-row > div {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .signinpanel .captcha-row > div:first-child {
+            padding-left: 15px;
+        }
+
+        .signinpanel .captcha-row > div:last-child {
+            padding-right: 15px;
+        }
+
+        .signinpanel .code {
+            margin-bottom: 0;
+        }
+
+        .captcha-link {
+            display: block;
+            height: 42px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #d2d6de;
+            background: #ffffff;
+        }
+
+        .imgcode {
+            display: block;
+            width: 100% !important;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .checkbox-custom {
+            display: flex;
+            align-items: center;
+            padding: 0 0 0 25px;
+            margin: 16px 0 0;
+            color: #676a6c;
+        }
+
+        .checkbox-custom label {
+            color: #676a6c;
+        }
+
+        .signinpanel .btn {
+            margin-top: 20px;
+            height: 40px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0;
+            background: #1c84c6;
+            box-shadow: none;
+        }
+
+        .signinpanel .btn:hover,
+        .signinpanel .btn:focus,
+        .signinpanel .btn:active {
+            background: #1a7bb9;
+            box-shadow: none;
+        }
+
+        .form-note {
+            margin-top: 14px;
+            color: #999999;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .signup-footer {
+            margin: 22px 16px 0;
+            padding-top: 16px;
+            border-top: 1px solid #e7eaec;
+            color: #999999;
+            font-size: 13px;
+        }
+
+        .signup-footer .pull-left {
+            float: none !important;
+        }
+
+        @media screen and (max-width: 992px) {
+            .signinpanel {
+                padding-top: 28px;
+            }
+
+            .signinpanel .row {
+                display: block;
+            }
+
+            .signinpanel .col-sm-7,
+            .signinpanel .col-sm-5 {
+                width: 100%;
+            }
+
+            .signin-info,
+            .login-card {
+                min-height: auto;
+            }
+
+            .signin-info {
+                min-height: auto;
+                padding: 24px 8px 16px;
+            }
+
+            .login-card {
+                min-height: auto;
+                padding: 18px 0 0;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .signinpanel {
+                width: 100%;
+                padding: 20px 16px 24px;
+            }
+
+            .brand-name {
+                font-size: 30px;
+            }
+
+            .signinpanel form {
+                padding: 30px 24px 26px;
+            }
+        }
+
+        @media screen and (max-width: 576px) {
+            .signin-info {
+                padding: 18px 4px 12px;
+            }
+
+            .brand-name {
+                font-size: 24px;
+            }
+
+            .brand-subtitle {
+                font-size: 15px;
+            }
+
+            .signinpanel form {
+                padding: 28px 20px 24px;
+            }
+
+            .form-title {
+                font-size: 24px;
+            }
+
+            .signinpanel .captcha-row {
+                margin-left: -5px;
+                margin-right: -5px;
+            }
+
+            .signinpanel .captcha-row > div,
+            .signinpanel .captcha-row > div:first-child,
+            .signinpanel .captcha-row > div:last-child {
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+        }
+    </style>
+    <script>
+        if(window.top!==window.self){alert('未登录或登录超时。请重新登录');window.top.location=window.location};
+    </script>
+</head>
+<body class="signin">
+    <div class="signinpanel">
+        <div class="row">
+            <div class="col-sm-7">
+                <div class="signin-info">
+                    <div class="logopanel m-b"></div>
+                    <span class="brand-caption">系统入口</span>
+                    <h1 class="brand-name">典恒分销管理平台</h1>
+                    <p class="brand-subtitle">欢迎登录平台后台，统一管理分销员、订单、佣金与结算等核心业务。</p>
+                    <div class="brand-section-title">核心业务</div>
+                    <ul class="feature-grid">
+                        <li>
+                            <span class="feature-icon"><i class="fa fa-users"></i></span>
+                            <div class="feature-body">
+                                <strong>分销员管理</strong>
+                                <span>统一维护分销员信息、上下级关系与平台归属。</span>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="feature-icon"><i class="fa fa-line-chart"></i></span>
+                            <div class="feature-body">
+                                <strong>订单与佣金</strong>
+                                <span>实时跟进分销订单、佣金变化与业务结算状态。</span>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="feature-icon"><i class="fa fa-credit-card"></i></span>
+                            <div class="feature-body">
+                                <strong>提现与协同</strong>
+                                <span>集中处理提现审核、平台接入及规则协同配置。</span>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="register-entry" th:if="${isAllowRegister}">
+                        还没有账号？ <a th:href="@{/register}">立即注册 &raquo;</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <div class="login-card">
+                    <form id="signupForm" autocomplete="off">
+                        <span class="form-eyebrow">后台登录</span>
+                        <h2 class="form-title">账号登录</h2>
+                        <p class="form-subtitle">请输入平台账号信息，进入典恒分销管理平台。</p>
+                        <input type="text"     name="username" class="form-control uname" placeholder="用户名" value="admin" />
+                        <input type="password" name="password" class="form-control pword" placeholder="密码" value="admin123" />
+						<div class="row captcha-row" th:if="${captchaEnabled==true}">
+							<div class="col-xs-6">
+							    <input type="text" name="validateCode" class="form-control code" placeholder="验证码" maxlength="5" />
+							</div>
+							<div class="col-xs-6">
+								<a href="javascript:void(0);" title="点击更换验证码" class="captcha-link">
+									<img th:src="@{/captcha/captchaImage(type=${captchaType})}" class="imgcode" />
+								</a>
+							</div>
+						</div>
+                        <div class="checkbox-custom" th:if="${isRemembered}" th:classappend="${captchaEnabled==false} ? 'm-t'">
+				            <input type="checkbox" id="rememberme" name="rememberme"> <label for="rememberme">记住我</label>
+				        </div>
+                        <button class="btn btn-primary btn-block" id="btnSubmit" data-loading="正在验证登录，请稍候...">登录</button>
+                        <div class="form-note">安全登录后可统一管理分销业务与平台协同。</div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="signup-footer">
+            <div class="pull-left">
+                Copyright © 2026 典恒分销 All Rights Reserved.
+            </div>
+        </div>
+    </div>
+<script th:inline="javascript"> var ctx = [[@{/}]]; var captchaType = [[${captchaType}]]; var captchaEnabled = [[${captchaEnabled}]];</script>
+<!--[if lte IE 8]><script>window.location.href=ctx+'html/ie.html';</script><![endif]-->
+<!-- 全局js -->
+<script src="../static/js/jquery.min.js" th:src="@{/js/jquery.min.js}"></script>
+<script src="../static/ajax/libs/validate/jquery.validate.min.js" th:src="@{/ajax/libs/validate/jquery.validate.min.js}"></script>
+<script src="../static/ajax/libs/layer/layer.min.js" th:src="@{/ajax/libs/layer/layer.min.js}"></script>
+<script src="../static/ajax/libs/blockUI/jquery.blockUI.js" th:src="@{/ajax/libs/blockUI/jquery.blockUI.js}"></script>
+<script src="../static/dh/js/ry-ui.js" th:src="@{/dh/js/ry-ui.js?v=4.8.3}"></script>
+<script src="../static/dh/login.js" th:src="@{/dh/login.js}"></script>
+</body>
+</html>

@@ -6,7 +6,7 @@ This repository is a lightweight monorepo for `颐享健康大讲堂`.
 
 - `apps/mobile`: Expo React Native prototype for the member-facing mobile app.
 - `apps/admin-web`: placeholder for the future React admin console.
-- `services/api`: placeholder for the future Java / Spring Boot backend.
+- `server/`: Java / Spring Boot backend (Maven multi-module: dh-admin, dh-framework, dh-system, dh-quartz, dh-generator, dh-common).
 - `packages/api-contracts`: placeholder for future OpenAPI schemas and generated TypeScript API clients.
 - `docs`: shared product, architecture, and learning documentation.
 
@@ -30,7 +30,7 @@ corepack pnpm test --runInBand
 
 - Keep mobile app work under `apps/mobile` unless the change is genuinely shared across products.
 - Keep admin web work under `apps/admin-web` once that app is created.
-- Keep backend service work under `services/api` once the Spring Boot project is created.
+- Keep backend service work under `server/` (Java Spring Boot).
 - Put shared API contracts in `packages/api-contracts`; do not share UI components between React Web and React Native by default.
 - Use the mobile-specific guide at `apps/mobile/AGENTS.md` for Expo, React Native, routing, mock data, Zustand state, and iOS layout rules.
 - Prefer API contracts and generated clients for front/backend integration instead of handwritten duplicated request types.

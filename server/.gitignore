@@ -1,0 +1,64 @@
+######################################################################
+# Build Tools
+
+.gradle
+/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+######################################################################
+# IDE
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### JRebel ###
+rebel.xml
+### NetBeans ###
+nbproject/private/
+build/*
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+######################################################################
+# Others
+*.log
+*.xml.versionsBackup
+*.swp
+.DS_Store
+
+######################################################################
+# Build outputs
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+######################################################################
+# Compiled class directories
+dh-admin/target/
+dh-common/target/
+dh-framework/target/
+dh-generator/target/
+dh-quartz/target/
+dh-system/target/
+
+######################################################################
+# Project specific
+bin/
+dh-admin.jar
+ruoyi-admin.jar
+.superset/
