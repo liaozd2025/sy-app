@@ -1,10 +1,22 @@
 -- =====================================================================
--- 颐享健康直播学习平台 v1 - Schema 增量迁移脚本
+-- 典恒直播 APP v1 - Schema 增量迁移脚本
 -- =====================================================================
 -- 执行顺序：先 ry_20260319.sql → 再 dh_live_app.sql → 最后本文件
 -- 决策来源：docs/prd-v1.md §7 + server/docs/adr/0001~0008
 -- 设计约定：沿用 dh_live_app.sql 既有规范（snake_case、bigint(20) 主键、
 --          RuoYi 标准元数据列、innodb + utf8mb4）
+--
+-- ⚠️ 幂等性注意：
+--   - DROP TABLE / DROP COLUMN 部分用 procedure 包裹，可重复执行
+--   - ALTER TABLE ADD COLUMN 部分不幂等（MySQL 8.0 不支持 ADD COLUMN
+--     IF NOT EXISTS），重复执行会报 "Duplicate column name" 错误
+--   - 设计原则：本文件视为"一次性 schema migration"，生产环境上线后引入
+--     Flyway / Liquibase 做版本化管理
+--   - 开发期如需重跑：DROP DATABASE 后从 ry_20260319.sql 重头执行
+--
+-- 验证情况（2026-05-24）：
+--   ✓ 在 MySQL 8.0.45 临时库执行全链路无错（ry → dh_live_app → 本文件）
+--   ✓ 5 张新表 / 3 张表新字段 / 2 张表删除 / 字典更新 全部生效
 -- =====================================================================
 
 
@@ -31,10 +43,10 @@ where dict_type in (
 insert into sys_dict_type
   (dict_name, dict_type, status, create_by, create_time, update_by, update_time, remark)
 values
-  ('颐享课程类型',    'dh_course_type',         '0', 'admin', sysdate(), '', null, '课程类型（v1 仅 standard）'),
-  ('颐享必修范围',    'dh_required_scope',      '0', 'admin', sysdate(), '', null, '必修课对象范围'),
-  ('颐享公告范围',    'dh_announcement_scope',  '0', 'admin', sysdate(), '', null, '公告对象范围'),
-  ('颐享福利状态',    'dh_reward_item_status',  '0', 'admin', sysdate(), '', null, '福利 SKU 上下架状态');
+  ('典恒课程类型',    'dh_course_type',         '0', 'admin', sysdate(), '', null, '课程类型（v1 仅 standard）'),
+  ('典恒必修范围',    'dh_required_scope',      '0', 'admin', sysdate(), '', null, '必修课对象范围'),
+  ('典恒公告范围',    'dh_announcement_scope',  '0', 'admin', sysdate(), '', null, '公告对象范围'),
+  ('典恒福利状态',    'dh_reward_item_status',  '0', 'admin', sysdate(), '', null, '福利 SKU 上下架状态');
 
 insert into sys_dict_data
   (dict_sort, dict_label, dict_value, dict_type, css_class, list_class, is_default, status, create_by, create_time, update_by, update_time, remark)
@@ -83,7 +95,7 @@ create table dh_live_organization (
   primary key (org_id),
   unique key uk_dh_live_organization_code (org_code),
   key idx_dh_live_organization_status (status, sort)
-) engine=innodb auto_increment=10000 default charset=utf8mb4 comment='颐享经销商公司表';
+) engine=innodb auto_increment=10000 default charset=utf8mb4 comment='典恒经销商公司表';
 
 -- 2.2 总部公告
 drop table if exists dh_live_announcement;
@@ -110,7 +122,7 @@ create table dh_live_announcement (
   primary key (ann_id),
   unique key uk_dh_live_announcement_biz_code (biz_code),
   key idx_dh_live_announcement_pin_publish (is_pinned desc, publish_status, publish_time desc)
-) engine=innodb auto_increment=10000 default charset=utf8mb4 comment='颐享总部公告表';
+) engine=innodb auto_increment=10000 default charset=utf8mb4 comment='典恒总部公告表';
 
 -- 2.3 福利 SKU
 drop table if exists dh_live_reward_item;
@@ -134,7 +146,7 @@ create table dh_live_reward_item (
   primary key (item_id),
   unique key uk_dh_live_reward_item_biz_code (biz_code),
   key idx_dh_live_reward_item_status_sort (status, sort)
-) engine=innodb auto_increment=10000 default charset=utf8mb4 comment='颐享积分商城福利表';
+) engine=innodb auto_increment=10000 default charset=utf8mb4 comment='典恒积分商城福利表';
 
 -- 2.4 兑换码池
 drop table if exists dh_live_reward_code;
@@ -155,7 +167,7 @@ create table dh_live_reward_code (
   unique key uk_dh_live_reward_code_str (code),
   key idx_dh_live_reward_code_item_used (item_id, is_used),
   key idx_dh_live_reward_code_used_by (used_by)
-) engine=innodb auto_increment=10000 default charset=utf8mb4 comment='颐享积分商城兑换码池表';
+) engine=innodb auto_increment=10000 default charset=utf8mb4 comment='典恒积分商城兑换码池表';
 
 -- 2.5 学员兑换记录
 drop table if exists dh_live_member_reward_record;
@@ -176,7 +188,7 @@ create table dh_live_member_reward_record (
   key idx_dh_live_member_reward_record_member (member_id, exchange_time desc),
   key idx_dh_live_member_reward_record_item (item_id),
   unique key uk_dh_live_member_reward_record_code (code_id)
-) engine=innodb auto_increment=10000 default charset=utf8mb4 comment='颐享学员兑换记录表';
+) engine=innodb auto_increment=10000 default charset=utf8mb4 comment='典恒学员兑换记录表';
 
 
 -- =====================================================================
@@ -213,9 +225,27 @@ alter table dh_live_course_chapter
 -- =====================================================================
 
 -- 4.1 删除 dh_live_session.course_id（直播与课程解耦，见 ADR-0004）
--- 先删索引（如存在），再删字段
-alter table dh_live_session drop index if exists idx_dh_live_session_course;
-alter table dh_live_session drop column if exists course_id;
+-- MySQL 不支持 `DROP INDEX/COLUMN IF EXISTS`，用 procedure 包裹保持幂等
+drop procedure if exists v1_drop_session_courseid;
+delimiter //
+create procedure v1_drop_session_courseid()
+begin
+  if exists (select 1 from information_schema.statistics
+             where table_schema = database()
+               and table_name = 'dh_live_session'
+               and index_name = 'idx_dh_live_session_course') then
+    alter table dh_live_session drop index idx_dh_live_session_course;
+  end if;
+  if exists (select 1 from information_schema.columns
+             where table_schema = database()
+               and table_name = 'dh_live_session'
+               and column_name = 'course_id') then
+    alter table dh_live_session drop column course_id;
+  end if;
+end //
+delimiter ;
+call v1_drop_session_courseid();
+drop procedure v1_drop_session_courseid;
 
 -- 4.2 删除 dh_live_chat_message（直播聊天交火山引擎，见 ADR-0005）
 drop table if exists dh_live_chat_message;

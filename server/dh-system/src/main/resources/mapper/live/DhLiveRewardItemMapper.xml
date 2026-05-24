@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dh.live.mapper.DhLiveRewardItemMapper">
+
+    <resultMap type="map" id="DhLiveRewardItemResult">
+    </resultMap>
+
+    <sql id="selectRewardItemVo">
+        select item_id as itemId, biz_code as bizCode, item_name as itemName,
+               cover_image as coverImage, description, required_points as requiredPoints,
+               stock_total as stockTotal, stock_remaining as stockRemaining,
+               status, sort, create_by as createBy, create_time as createTime,
+               update_by as updateBy, update_time as updateTime, remark,
+               del_flag as delFlag
+        from dh_live_reward_item
+        where del_flag = '0'
+    </sql>
+
+    <select id="selectRewardItemById" parameterType="Long" resultType="map">
+        <include refid="selectRewardItemVo"/>
+        and item_id = #{itemId}
+    </select>
+
+    <select id="selectRewardItemList" resultType="map">
+        <include refid="selectRewardItemVo"/>
+        <if test="keyword != null and keyword != ''">
+            AND (item_name like concat('%', #{keyword}, '%') OR biz_code like concat('%', #{keyword}, '%'))
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        order by sort asc, item_id desc
+    </select>
+
+    <insert id="insertRewardItem" parameterType="map">
+        insert into dh_live_reward_item
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bizCode != null and bizCode != ''">biz_code,</if>
+            <if test="itemName != null and itemName != ''">item_name,</if>
+            <if test="coverImage != null">cover_image,</if>
+            <if test="description != null">description,</if>
+            <if test="requiredPoints != null">required_points,</if>
+            <if test="stockTotal != null">stock_total,</if>
+            <if test="stockRemaining != null">stock_remaining,</if>
+            <if test="status != null">status,</if>
+            <if test="sort != null">sort,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time,
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bizCode != null and bizCode != ''">#{bizCode},</if>
+            <if test="itemName != null and itemName != ''">#{itemName},</if>
+            <if test="coverImage != null">#{coverImage},</if>
+            <if test="description != null">#{description},</if>
+            <if test="requiredPoints != null">#{requiredPoints},</if>
+            <if test="stockTotal != null">#{stockTotal},</if>
+            <if test="stockRemaining != null">#{stockRemaining},</if>
+            <if test="status != null">#{status},</if>
+            <if test="sort != null">#{sort},</if>
+            <if test="createBy != null">#{createBy},</if>
+            sysdate(),
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateRewardItem" parameterType="map">
+        update dh_live_reward_item
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="itemName != null and itemName != ''">item_name = #{itemName},</if>
+            <if test="coverImage != null">cover_image = #{coverImage},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="requiredPoints != null">required_points = #{requiredPoints},</if>
+            <if test="stockTotal != null">stock_total = #{stockTotal},</if>
+            <if test="stockRemaining != null">stock_remaining = #{stockRemaining},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where item_id = ${itemId}
+    </update>
+
+    <delete id="deleteRewardItemById" parameterType="Long">
+        update dh_live_reward_item set del_flag = '1', update_time = sysdate() where item_id = #{itemId}
+    </delete>
+
+    <delete id="deleteRewardItemByIds" parameterType="String">
+        update dh_live_reward_item set del_flag = '1', update_time = sysdate() where item_id in
+        <foreach item="itemId" collection="itemIds" open="(" separator="," close=")">
+            #{itemId}
+        </foreach>
+    </delete>
+
+    <update id="updateRewardItemStatus">
+        update dh_live_reward_item set status = #{status}, update_time = sysdate() where item_id = #{itemId}
+    </update>
+
+    <update id="updateRewardItemStock">
+        update dh_live_reward_item
+        set stock_remaining = greatest(0, stock_remaining + #{delta}),
+            update_time = sysdate()
+        where item_id = #{itemId}
+    </update>
+
+</mapper>

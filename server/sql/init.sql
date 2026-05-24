@@ -1,4 +1,4 @@
--- 颐享健康平台 数据库表结构
+-- 典恒直播 APP 数据库表结构
 -- 执行方式: mysql -u root -p < init.sql
 
 CREATE DATABASE IF NOT EXISTS yixiang DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

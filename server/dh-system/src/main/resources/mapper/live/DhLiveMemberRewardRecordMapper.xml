@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dh.live.mapper.DhLiveMemberRewardRecordMapper">
+
+    <resultMap type="map" id="DhLiveMemberRewardRecordResult">
+    </resultMap>
+
+    <sql id="selectRewardRecordVo">
+        select record_id as recordId, member_id as memberId, item_id as itemId,
+               code_id as codeId, points_consumed as pointsConsumed,
+               exchange_time as exchangeTime, delivery_status as deliveryStatus,
+               delivery_note as deliveryNote, create_time as createTime,
+               update_time as updateTime, remark, del_flag as delFlag
+        from dh_live_member_reward_record
+        where del_flag = '0'
+    </sql>
+
+    <select id="selectRewardRecordById" parameterType="Long" resultType="map">
+        <include refid="selectRewardRecordVo"/>
+        and record_id = #{recordId}
+    </select>
+
+    <select id="selectRewardRecordList" resultType="map">
+        <include refid="selectRewardRecordVo"/>
+        <if test="keyword != null and keyword != ''">
+            AND (item_id in (
+                select item_id from dh_live_reward_item where item_name like concat('%', #{keyword}, '%')
+            ) OR member_id in (
+                select member_id from dh_live_member where nickname like concat('%', #{keyword}, '%')
+            ))
+        </if>
+        <if test="deliveryStatus != null and deliveryStatus != ''">
+            AND delivery_status = #{deliveryStatus}
+        </if>
+        order by exchange_time desc, record_id desc
+    </select>
+
+    <insert id="insertRewardRecord" parameterType="map">
+        insert into dh_live_member_reward_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="memberId != null">member_id,</if>
+            <if test="itemId != null">item_id,</if>
+            <if test="codeId != null">code_id,</if>
+            <if test="pointsConsumed != null">points_consumed,</if>
+            <if test="exchangeTime != null">exchange_time,</if>
+            <if test="deliveryStatus != null">delivery_status,</if>
+            <if test="deliveryNote != null">delivery_note,</if>
+            create_time,
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="memberId != null">#{memberId},</if>
+            <if test="itemId != null">#{itemId},</if>
+            <if test="codeId != null">#{codeId},</if>
+            <if test="pointsConsumed != null">#{pointsConsumed},</if>
+            <if test="exchangeTime != null">#{exchangeTime},</if>
+            <if test="deliveryStatus != null">#{deliveryStatus},</if>
+            <if test="deliveryNote != null">#{deliveryNote},</if>
+            sysdate(),
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateRewardRecord" parameterType="map">
+        update dh_live_member_reward_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="deliveryStatus != null">delivery_status = #{deliveryStatus},</if>
+            <if test="deliveryNote != null">delivery_note = #{deliveryNote},</if>
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where record_id = ${recordId}
+    </update>
+
+    <delete id="deleteRewardRecordById" parameterType="Long">
+        update dh_live_member_reward_record set del_flag = '1', update_time = sysdate() where record_id = #{recordId}
+    </delete>
+
+    <delete id="deleteRewardRecordByIds" parameterType="String">
+        update dh_live_member_reward_record set del_flag = '1', update_time = sysdate() where record_id in
+        <foreach item="recordId" collection="recordIds" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+    </delete>
+
+    <update id="updateRewardRecordDelivery">
+        update dh_live_member_reward_record
+        set delivery_status = #{deliveryStatus},
+            delivery_note = #{deliveryNote},
+            update_time = sysdate()
+        where record_id = #{recordId}
+    </update>
+
+    <select id="selectRewardRecordByMemberId" parameterType="Long" resultType="map">
+        select r.record_id as recordId, r.member_id as memberId, r.item_id as itemId,
+               r.code_id as codeId, r.points_consumed as pointsConsumed,
+               r.exchange_time as exchangeTime, r.delivery_status as deliveryStatus,
+               r.delivery_note as deliveryNote, r.create_time as createTime,
+               i.item_name as itemName, i.cover_image as coverImage,
+               c.code as rewardCode
+        from dh_live_member_reward_record r
+        left join dh_live_reward_item i on i.item_id = r.item_id
+        left join dh_live_reward_code c on c.code_id = r.code_id
+        where r.member_id = #{memberId}
+          and r.del_flag = '0'
+        order by r.exchange_time desc, r.record_id desc
+    </select>
+
+</mapper>

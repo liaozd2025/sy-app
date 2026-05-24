@@ -1,6 +1,6 @@
-# 颐享健康平台
+# 典恒直播 APP
 
-这是 `颐享健康大讲堂` 的轻量 monorepo。当前可运行应用是 Expo React Native 移动端原型，后续会补充 React 后台管理和 Java / Spring Boot 后端服务。
+这是 `典恒直播 APP` 的轻量 monorepo。当前可运行应用是 Expo React Native 移动端原型，后续会补充 React 后台管理和 Java / Spring Boot 后端服务。
 
 ## 目录结构
 

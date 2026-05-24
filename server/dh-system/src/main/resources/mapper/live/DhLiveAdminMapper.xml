@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dh.live.mapper.DhLiveAdminMapper">
+
+    <select id="selectAdminList" resultType="map">
+        select *
+        from ${tableName}
+        <where>
+            <if test="hasDelFlag">
+                del_flag = '0'
+            </if>
+            <if test="keyword != null and keyword != ''">
+                <if test="hasDelFlag">
+                    and
+                </if>
+                ${titleColumn} like concat('%', #{keyword}, '%')
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectAdminById" resultType="map">
+        select *
+        from ${tableName}
+        where ${idColumn} = #{id}
+    </select>
+
+    <insert id="insertAdminRow" useGeneratedKeys="false">
+        insert into ${tableName}
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <foreach collection="columns" item="column">
+                ${column.name},
+            </foreach>
+            create_time,
+            update_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <foreach collection="columns" item="column">
+                #{column.value},
+            </foreach>
+            sysdate(),
+            sysdate()
+        </trim>
+    </insert>
+
+    <update id="updateAdminRow">
+        update ${tableName}
+        <set>
+            <foreach collection="columns" item="column">
+                ${column.name} = #{column.value},
+            </foreach>
+            update_time = sysdate()
+        </set>
+        where ${idColumn} = #{id}
+    </update>
+
+    <delete id="deleteAdminRows">
+        <choose>
+            <when test="hasDelFlag">
+                update ${tableName}
+                set del_flag = '2', update_time = sysdate()
+                where ${idColumn} in
+                <foreach collection="ids" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </when>
+            <otherwise>
+                delete from ${tableName}
+                where ${idColumn} in
+                <foreach collection="ids" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </otherwise>
+        </choose>
+    </delete>
+
+    <update id="updateAdminStatus">
+        update ${tableName}
+        set ${statusColumn} = #{status}, update_time = sysdate()
+        where ${idColumn} = #{id}
+    </update>
+
+    <insert id="insertConsultationReply">
+        insert into dh_live_consultation_reply
+          (consult_id, reply_type, sys_user_id, content, status, create_time, update_time)
+        values
+          (#{consultId}, 'operator', #{sysUserId}, #{content}, '0', sysdate(), sysdate())
+    </insert>
+
+    <update id="updateConsultationStatus">
+        update dh_live_consultation
+        set status = #{status},
+            <if test="assignedSysUserId != null">assigned_sys_user_id = #{assignedSysUserId},</if>
+            <if test="status == 'closed'">close_time = sysdate(),</if>
+            update_time = sysdate()
+        where consult_id = #{consultId}
+    </update>
+
+</mapper>

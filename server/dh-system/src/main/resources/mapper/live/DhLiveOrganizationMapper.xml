@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dh.live.mapper.DhLiveOrganizationMapper">
+
+    <resultMap type="map" id="DhLiveOrganizationResult">
+    </resultMap>
+
+    <sql id="selectOrganizationVo">
+        select org_id as orgId, org_code as orgCode, org_name as orgName, region,
+               contact_name as contactName, contact_phone as contactPhone,
+               status, sort, create_by as createBy, create_time as createTime,
+               update_by as updateBy, update_time as updateTime, remark, del_flag as delFlag
+        from dh_live_organization
+        where del_flag = '0'
+    </sql>
+
+    <select id="selectOrganizationById" parameterType="Long" resultType="map">
+        <include refid="selectOrganizationVo"/>
+        and org_id = #{orgId}
+    </select>
+
+    <select id="selectOrganizationList" resultType="map">
+        <include refid="selectOrganizationVo"/>
+        <if test="orgName != null and orgName != ''">
+            AND org_name like concat('%', #{orgName}, '%')
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        <if test="region != null and region != ''">
+            AND region = #{region}
+        </if>
+        order by sort asc, org_id desc
+    </select>
+
+    <insert id="insertOrganization" parameterType="map">
+        insert into dh_live_organization
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orgCode != null and orgCode != ''">org_code,</if>
+            <if test="orgName != null and orgName != ''">org_name,</if>
+            <if test="region != null">region,</if>
+            <if test="contactName != null">contact_name,</if>
+            <if test="contactPhone != null">contact_phone,</if>
+            <if test="status != null">status,</if>
+            <if test="sort != null">sort,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time,
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orgCode != null and orgCode != ''">#{orgCode},</if>
+            <if test="orgName != null and orgName != ''">#{orgName},</if>
+            <if test="region != null">#{region},</if>
+            <if test="contactName != null">#{contactName},</if>
+            <if test="contactPhone != null">#{contactPhone},</if>
+            <if test="status != null">#{status},</if>
+            <if test="sort != null">#{sort},</if>
+            <if test="createBy != null">#{createBy},</if>
+            sysdate(),
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateOrganization" parameterType="map">
+        update dh_live_organization
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="orgName != null and orgName != ''">org_name = #{orgName},</if>
+            <if test="region != null">region = #{region},</if>
+            <if test="contactName != null">contact_name = #{contactName},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where org_id = ${orgId}
+    </update>
+
+    <delete id="deleteOrganizationById" parameterType="Long">
+        update dh_live_organization set del_flag = '1', update_time = sysdate() where org_id = #{orgId}
+    </delete>
+
+    <delete id="deleteOrganizationByIds" parameterType="String">
+        update dh_live_organization set del_flag = '1', update_time = sysdate() where org_id in
+        <foreach item="orgId" collection="orgIds" open="(" separator="," close=")">
+            #{orgId}
+        </foreach>
+    </delete>
+
+    <update id="updateOrganizationStatus">
+        update dh_live_organization set status = #{status}, update_time = sysdate() where org_id = #{orgId}
+    </update>
+
+</mapper>

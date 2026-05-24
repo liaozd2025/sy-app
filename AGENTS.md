@@ -1,8 +1,8 @@
-# 颐享健康平台 Agent Guide
+# 典恒直播 APP Agent Guide
 
 ## Repository Overview
 
-This repository is a lightweight monorepo for `颐享健康大讲堂`.
+This repository is a lightweight monorepo for `典恒直播 APP`.
 
 - `apps/mobile`: Expo React Native prototype for the member-facing mobile app.
 - `apps/admin-web`: placeholder for the future React admin console.

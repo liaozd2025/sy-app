@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dh.live.mapper.DhLiveAppMapper">
+
+    <select id="selectMemberById" resultType="map">
+        select member_id as memberId, phone, nickname, avatar, member_label as memberLabel, status,
+               last_login_time as lastLoginTime, create_time as createTime, remark
+        from dh_live_member
+        where member_id = #{memberId}
+          and del_flag = '0'
+    </select>
+
+    <select id="selectMemberProfile" resultType="map">
+        select profile_id as profileId, member_id as memberId, gender, birthday,
+               focus_tags_json as focusTagsJson, region, health_notes as healthNotes
+        from dh_live_member_profile
+        where member_id = #{memberId}
+          and del_flag = '0'
+    </select>
+
+    <select id="selectMemberSetting" resultType="map">
+        select setting_id as settingId, member_id as memberId,
+               live_reminder_enabled as liveReminderEnabled,
+               live_reminder_minutes as liveReminderMinutes,
+               wifi_download_only as wifiDownloadOnly
+        from dh_live_member_setting
+        where member_id = #{memberId}
+          and del_flag = '0'
+    </select>
+
+    <select id="selectPointsAccount" resultType="map">
+        select account_id as accountId, member_id as memberId, current_points as currentPoints,
+               total_earned as totalEarned, total_consumed as totalConsumed
+        from dh_live_member_points_account
+        where member_id = #{memberId}
+    </select>
+
+    <select id="selectLatestDailyStat" resultType="map">
+        select stat_id as statId, member_id as memberId, stat_date as statDate,
+               study_seconds as studySeconds, completed_count as completedCount,
+               quiz_count as quizCount, correct_count as correctCount,
+               points_earned as pointsEarned, streak_days as streakDays
+        from dh_live_member_daily_stat
+        where member_id = #{memberId}
+        order by stat_date desc
+        limit 1
+    </select>
+
+    <select id="countReservations" resultType="int">
+        select count(1)
+        from dh_live_reservation
+        where member_id = #{memberId}
+          and status in ('0', '2', '3')
+    </select>
+
+    <select id="selectRecommendations" resultType="map">
+        select r.rec_id as id, r.scene, r.target_type as targetType, r.target_id as targetId,
+               r.title_override as title, r.subtitle_override as subtitle, r.cover_override as cover,
+               r.action_text as actionText, r.sort
+        from dh_live_recommendation r
+        where r.scene = #{scene}
+          and r.status = '0'
+          and r.del_flag = '0'
+          and (r.online_time is null or r.online_time &lt;= sysdate())
+          and (r.offline_time is null or r.offline_time &gt; sysdate())
+        order by r.sort asc, r.rec_id desc
+    </select>
+
+    <select id="selectLiveSessions" resultType="map">
+        select l.live_id as id, l.biz_code as bizCode, l.course_id as courseId,
+               l.topic_id as topicId, t.topic_name as topic, l.creator_id as creatorId,
+               c.creator_name as teacher, c.avatar as teacherAvatar, l.title, l.subtitle,
+               l.description, l.cover_image as coverImage, l.start_time as startTime,
+               l.end_time as endTime, l.status as statusCode, l.h5_url as h5Url,
+               l.replay_url as replayUrl, l.duration_seconds as durationSeconds,
+               l.audience_count as audienceCount, l.reservation_count as reservationCount,
+               if(r.reservation_id is null or r.status = '1', 0, 1) as reserved,
+               if(f.favorite_id is null or f.status = '1', 0, 1) as favorite,
+               p.progress_percent as progress
+        from dh_live_session l
+        left join dh_live_creator c on c.creator_id = l.creator_id
+        left join dh_live_topic t on t.topic_id = l.topic_id
+        left join dh_live_reservation r on r.live_id = l.live_id and r.member_id = #{memberId}
+        left join dh_live_member_favorite f on f.target_type = 'live' and f.target_id = l.live_id and f.member_id = #{memberId}
+        left join dh_live_learning_progress p on p.target_type = 'live' and p.target_id = l.live_id and p.member_id = #{memberId}
+        where l.publish_status = '1'
+          and l.del_flag = '0'
+        <if test="status != null and status != ''">
+          and l.status = #{status}
+        </if>
+        order by l.status asc, l.start_time asc, l.sort asc
+    </select>
+
+    <select id="selectLiveSessionByBizCode" resultType="map">
+        select l.live_id as id, l.biz_code as bizCode, l.course_id as courseId,
+               l.topic_id as topicId, t.topic_name as topic, l.creator_id as creatorId,
+               c.creator_name as teacher, c.avatar as teacherAvatar, c.title as teacherTitle,
+               l.title, l.subtitle, l.description, l.cover_image as coverImage,
+               l.start_time as startTime, l.end_time as endTime, l.status as statusCode,
+               l.h5_url as h5Url, l.replay_url as replayUrl, l.duration_seconds as durationSeconds,
+               l.audience_count as audienceCount, l.reservation_count as reservationCount,
+               if(r.reservation_id is null or r.status = '1', 0, 1) as reserved,
+               if(f.favorite_id is null or f.status = '1', 0, 1) as favorite,
+               p.progress_percent as progress,
+               p.last_position_seconds as lastPositionSeconds
+        from dh_live_session l
+        left join dh_live_creator c on c.creator_id = l.creator_id
+        left join dh_live_topic t on t.topic_id = l.topic_id
+        left join dh_live_reservation r on r.live_id = l.live_id and r.member_id = #{memberId}
+        left join dh_live_member_favorite f on f.target_type = 'live' and f.target_id = l.live_id and f.member_id = #{memberId}
+        left join dh_live_learning_progress p on p.target_type = 'live' and p.target_id = l.live_id and p.member_id = #{memberId}
+        where l.biz_code = #{bizCode}
+          and l.del_flag = '0'
+        limit 1
+    </select>
+
+    <select id="selectLiveSessionById" resultType="map">
+        select live_id as id, biz_code as bizCode, title, status as statusCode
+        from dh_live_session
+        where live_id = #{liveId}
+          and del_flag = '0'
+    </select>
+
+    <insert id="upsertLiveReservation">
+        insert into dh_live_reservation (member_id, live_id, reminder_time, status, create_time, update_time)
+        values (#{memberId}, #{liveId}, #{reminderTime}, #{status}, sysdate(), sysdate())
+        on duplicate key update
+            reminder_time = values(reminder_time),
+            status = values(status),
+            update_time = sysdate()
+    </insert>
+
+    <update id="updateLiveReservationCount">
+        update dh_live_session
+        set reservation_count = greatest(0, reservation_count + #{delta}),
+            update_time = sysdate()
+        where live_id = #{liveId}
+    </update>
+
+    <insert id="upsertLiveWatchRecord">
+        insert into dh_live_watch_record
+          (member_id, live_id, watch_seconds, progress_percent, last_position_seconds, first_watch_time, last_watch_time, create_time, update_time)
+        values
+          (#{memberId}, #{liveId}, #{watchSeconds}, #{progressPercent}, #{lastPositionSeconds}, sysdate(), sysdate(), sysdate(), sysdate())
+        on duplicate key update
+            watch_seconds = greatest(watch_seconds, values(watch_seconds)),
+            progress_percent = values(progress_percent),
+            last_position_seconds = values(last_position_seconds),
+            last_watch_time = sysdate(),
+            update_time = sysdate()
+    </insert>
+
+    <select id="selectCourseByBizCode" resultType="map">
+        select c.course_id as id, c.biz_code as bizCode, c.topic_id as topicId,
+               t.topic_name as topic, c.creator_id as creatorId, cr.creator_name as creator,
+               c.title, c.summary, c.cover_image as coverImage, c.course_type as courseType,
+               c.view_count as viewCount,
+               if(f.favorite_id is null or f.status = '1', 0, 1) as favorite,
+               p.progress_percent as progress
+        from dh_live_course c
+        left join dh_live_topic t on t.topic_id = c.topic_id
+        left join dh_live_creator cr on cr.creator_id = c.creator_id
+        left join dh_live_member_favorite f on f.target_type = 'course' and f.target_id = c.course_id and f.member_id = #{memberId}
+        left join dh_live_learning_progress p on p.target_type = 'course' and p.target_id = c.course_id and p.member_id = #{memberId}
+        where c.biz_code = #{bizCode}
+          and c.del_flag = '0'
+        limit 1
+    </select>
+
+    <select id="selectCourseChapters" resultType="map">
+        select ch.chapter_id as id, ch.course_id as courseId, ch.biz_code as bizCode, ch.title,
+               ch.source_type as sourceType, ch.source_id as sourceId,
+               ch.duration_seconds as durationSeconds, ch.sort,
+               p.progress_percent as progress,
+               case when p.status = '1' then 'complete'
+                    when p.progress_percent &gt; 0 then 'current'
+                    else 'pending' end as status
+        from dh_live_course_chapter ch
+        left join dh_live_learning_progress p on p.target_type = 'chapter' and p.target_id = ch.chapter_id and p.member_id = #{memberId}
+        where ch.course_id = #{courseId}
+          and ch.publish_status = '1'
+          and ch.del_flag = '0'
+        order by ch.sort asc, ch.chapter_id asc
+    </select>
+
+    <select id="selectContents" resultType="map">
+        select c.content_id as id, c.biz_code as bizCode, c.topic_id as topicId,
+               t.topic_code as topicCode, t.topic_name as topic, c.creator_id as creatorId,
+               cr.creator_name as creator, c.content_kind as kind, c.title, c.summary,
+               c.cover_image as coverImage, c.video_url as videoUrl,
+               c.duration_seconds as durationSeconds, c.read_time_minutes as readTimeMinutes,
+               c.likes_count as likesCount, c.favorites_count as favoritesCount, c.comments_count as commentsCount,
+               if(f.favorite_id is null or f.status = '1', 0, 1) as favorite,
+               if(l.like_id is null or l.status = '1', 0, 1) as liked
+        from dh_live_content c
+        left join dh_live_topic t on t.topic_id = c.topic_id
+        left join dh_live_creator cr on cr.creator_id = c.creator_id
+        left join dh_live_member_favorite f on f.target_type = 'content' and f.target_id = c.content_id and f.member_id = #{memberId}
+        left join dh_live_member_like l on l.target_type = 'content' and l.target_id = c.content_id and l.member_id = #{memberId}
+        where c.publish_status = '1'
+          and c.del_flag = '0'
+        <if test="topicCode != null and topicCode != ''">
+          and t.topic_code = #{topicCode}
+        </if>
+        <if test="kind != null and kind != ''">
+          and c.content_kind = #{kind}
+        </if>
+        <if test="keyword != null and keyword != ''">
+          and c.title like concat('%', #{keyword}, '%')
+        </if>
+        order by c.sort asc, c.publish_time desc, c.content_id desc
+    </select>
+
+    <select id="selectContentByBizCode" resultType="map">
+        select c.content_id as id, c.biz_code as bizCode, c.topic_id as topicId,
+               t.topic_code as topicCode, t.topic_name as topic, c.creator_id as creatorId,
+               cr.creator_name as creator, cr.avatar as creatorAvatar,
+               c.content_kind as kind, c.title, c.summary, c.body, c.cover_image as coverImage,
+               c.video_url as videoUrl, c.duration_seconds as durationSeconds,
+               c.read_time_minutes as readTimeMinutes, c.likes_count as likesCount,
+               c.favorites_count as favoritesCount, c.comments_count as commentsCount,
+               if(f.favorite_id is null or f.status = '1', 0, 1) as favorite,
+               if(l.like_id is null or l.status = '1', 0, 1) as liked
+        from dh_live_content c
+        left join dh_live_topic t on t.topic_id = c.topic_id
+        left join dh_live_creator cr on cr.creator_id = c.creator_id
+        left join dh_live_member_favorite f on f.target_type = 'content' and f.target_id = c.content_id and f.member_id = #{memberId}
+        left join dh_live_member_like l on l.target_type = 'content' and l.target_id = c.content_id and l.member_id = #{memberId}
+        where c.biz_code = #{bizCode}
+          and c.del_flag = '0'
+        limit 1
+    </select>
+
+    <select id="selectEncyclopedia" resultType="map">
+        select e.entry_id as id, e.biz_code as bizCode, e.category, e.title,
+               e.description, e.tags_json as tagsJson,
+               if(f.favorite_id is null or f.status = '1', 0, 1) as favorite
+        from dh_live_encyclopedia e
+        left join dh_live_member_favorite f on f.target_type = 'encyclopedia' and f.target_id = e.entry_id and f.member_id = #{memberId}
+        where e.publish_status = '1'
+          and e.del_flag = '0'
+        <if test="category != null and category != '' and category != 'all'">
+          and e.category = #{category}
+        </if>
+        <if test="keyword != null and keyword != ''">
+          and e.title like concat('%', #{keyword}, '%')
+        </if>
+        order by e.sort asc, e.entry_id desc
+    </select>
+
+    <select id="selectEncyclopediaByBizCode" resultType="map">
+        select e.entry_id as id, e.biz_code as bizCode, e.category, e.title,
+               e.description, e.body, e.tags_json as tagsJson,
+               if(f.favorite_id is null or f.status = '1', 0, 1) as favorite
+        from dh_live_encyclopedia e
+        left join dh_live_member_favorite f on f.target_type = 'encyclopedia' and f.target_id = e.entry_id and f.member_id = #{memberId}
+        where e.biz_code = #{bizCode}
+          and e.del_flag = '0'
+        limit 1
+    </select>
+
+    <select id="selectTodayQuestion" resultType="map">
+        select q.question_id as id, q.biz_code as bizCode, q.topic_id as topicId,
+               t.topic_name as topic, q.type, q.prompt, q.options_json as optionsJson,
+               q.answer_key as answerId, q.explanation,
+               a.selected_answer as selectedAnswer, a.is_correct as isCorrect,
+               a.answer_time as answerTime
+        from dh_live_quiz_question q
+        left join dh_live_topic t on t.topic_id = q.topic_id
+        left join dh_live_quiz_answer_record a on a.question_id = q.question_id and a.member_id = #{memberId}
+        where q.publish_status = '1'
+          and q.del_flag = '0'
+        order by q.sort asc, q.question_id asc
+        limit 1
+    </select>
+
+    <select id="selectQuestionByBizCode" resultType="map">
+        select question_id as id, biz_code as bizCode, prompt, options_json as optionsJson,
+               answer_key as answerId, explanation
+        from dh_live_quiz_question
+        where biz_code = #{bizCode}
+          and del_flag = '0'
+        limit 1
+    </select>
+
+    <select id="selectAnswerRecord" resultType="map">
+        select record_id as id, member_id as memberId, question_id as questionId,
+               selected_answer as selectedAnswer, is_correct as isCorrect,
+               answer_time as answerTime, points_awarded as pointsAwarded
+        from dh_live_quiz_answer_record
+        where member_id = #{memberId}
+          and question_id = #{questionId}
+        limit 1
+    </select>
+
+    <insert id="insertAnswerRecord">
+        insert into dh_live_quiz_answer_record
+          (member_id, question_id, selected_answer, is_correct, answer_time, points_awarded, create_time, update_time)
+        values
+          (#{memberId}, #{questionId}, #{selectedAnswer}, #{isCorrect}, sysdate(), #{pointsAwarded}, sysdate(), sysdate())
+    </insert>
+
+    <insert id="insertPointsAccountIfAbsent">
+        insert ignore into dh_live_member_points_account
+          (member_id, current_points, total_earned, total_consumed, version, create_time, update_time)
+        values
+          (#{memberId}, 0, 0, 0, 0, sysdate(), sysdate())
+    </insert>
+
+    <update id="updatePointsAccount">
+        update dh_live_member_points_account
+        set current_points = current_points + #{pointsChange},
+            total_earned = case when #{pointsChange} &gt; 0 then total_earned + #{pointsChange} else total_earned end,
+            total_consumed = case when #{pointsChange} &lt; 0 then total_consumed - #{pointsChange} else total_consumed end,
+            version = version + 1,
+            update_time = sysdate()
+        where member_id = #{memberId}
+    </update>
+
+    <insert id="insertPointsLog">
+        insert into dh_live_member_points_log
+          (member_id, points_change, change_type, source_type, source_id, balance_after, description, create_time)
+        values
+          (#{memberId}, #{pointsChange}, #{changeType}, #{sourceType}, #{sourceId},
+           (select current_points from dh_live_member_points_account where member_id = #{memberId}),
+           #{description}, sysdate())
+    </insert>
+
+    <select id="selectDailyClaimLog" resultType="map">
+        select log_id as id, member_id as memberId, points_change as pointsChange,
+               balance_after as balanceAfter, create_time as createTime
+        from dh_live_member_points_log
+        where member_id = #{memberId}
+          and source_type = 'daily_checkin'
+          and date(create_time) = curdate()
+        limit 1
+    </select>
+
+    <select id="selectLearningProgress" resultType="map">
+        select progress_id as id, member_id as memberId, target_type as targetType, target_id as targetId,
+               progress_percent as progressPercent, study_seconds as studySeconds,
+               last_position_seconds as lastPositionSeconds, last_study_time as lastStudyTime,
+               completed_time as completedTime, status, remark
+        from dh_live_learning_progress
+        where member_id = #{memberId}
+        <if test="targetType != null and targetType != ''">
+          and target_type = #{targetType}
+        </if>
+        order by last_study_time desc, progress_id desc
+    </select>
+
+    <select id="selectPointsLogs" resultType="map">
+        select log_id as id, member_id as memberId, points_change as pointsChange,
+               change_type as changeType, source_type as sourceType, source_id as sourceId,
+               balance_after as balanceAfter, description, create_time as createTime
+        from dh_live_member_points_log
+        where member_id = #{memberId}
+        order by create_time desc, log_id desc
+    </select>
+
+    <update id="updateMember">
+        update dh_live_member
+        <set>
+            <foreach collection="data" index="key" item="value">
+                ${key} = #{value},
+            </foreach>
+            update_time = sysdate()
+        </set>
+        where member_id = #{memberId}
+          and del_flag = '0'
+    </update>
+
+    <insert id="upsertMemberProfile">
+        insert into dh_live_member_profile
+          (member_id,
+          <foreach collection="data" index="key" item="value" separator=",">
+            ${key}
+          </foreach>,
+          create_time, update_time, del_flag)
+        values
+          (#{memberId},
+          <foreach collection="data" index="key" item="value" separator=",">
+            #{value}
+          </foreach>,
+          sysdate(), sysdate(), '0')
+        on duplicate key update
+          <foreach collection="data" index="key" item="value" separator=",">
+            ${key} = #{value}
+          </foreach>,
+          update_time = sysdate()
+    </insert>
+
+    <update id="updateMemberSetting">
+        update dh_live_member_setting
+        <set>
+            <foreach collection="data" index="key" item="value">
+                ${key} = #{value},
+            </foreach>
+            update_time = sysdate()
+        </set>
+        where member_id = #{memberId}
+          and del_flag = '0'
+    </update>
+
+</mapper>

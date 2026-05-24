@@ -1,8 +1,8 @@
-# 颐享健康大讲堂 Mobile Agent Guide
+# 典恒直播 APP Mobile Agent Guide
 
 ## Project Overview
 
-`apps/mobile` is the Expo React Native prototype for `颐享健康大讲堂`, a private-domain health education app based on `obytes/react-native-template-obytes`.
+`apps/mobile` is the Expo React Native prototype for `典恒直播 APP`, a private-domain health education app based on `obytes/react-native-template-obytes`.
 
 The first demo focuses on five bottom tabs:
 
@@ -16,7 +16,7 @@ This version uses local mock data only. It does not include real login, payment,
 
 ## v1 产品定位（必读 — 详见 PRD）
 
-**颐享平台是面向一级经销商的"严肃打卡型" B 端培训 App**，不是 C 端品牌产品。所有功能围绕"看直播 → 学课程 → 答题 → 攒积分 → 兑福利"的内向闭环。
+**典恒直播 APP是面向一级经销商的"严肃打卡型" B 端培训 App**，不是 C 端品牌产品。所有功能围绕"看直播 → 学课程 → 答题 → 攒积分 → 兑福利"的内向闭环。
 
 **唯一事实来源**：
 - 产品需求 → [`../../docs/prd-v1.md`](../../docs/prd-v1.md)
@@ -128,5 +128,5 @@ For UI changes, also launch the app on iOS Simulator and check:
 ## Notes For Future Agents
 
 - `apps/mobile/uniwind-types.d.ts` is generated and intentionally ignored by ESLint.
-- Some original Obytes template routes and tests remain in the mobile app; do not assume they are part of the `颐享` demo flow.
+- Some original Obytes template routes and tests remain in the mobile app; do not assume they are part of the `典恒` demo flow.
 - If introducing real APIs, define a small typed boundary first and keep mock data usable for demo mode.

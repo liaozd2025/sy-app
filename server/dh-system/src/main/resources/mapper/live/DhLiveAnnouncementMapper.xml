@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dh.live.mapper.DhLiveAnnouncementMapper">
+
+    <resultMap type="map" id="DhLiveAnnouncementResult">
+    </resultMap>
+
+    <sql id="selectAnnouncementVo">
+        select ann_id as annId, biz_code as bizCode, title, summary, content,
+               scope, scope_ids_json as scopeIdsJson, is_pinned as isPinned,
+               publish_time as publishTime, expire_time as expireTime,
+               publish_status as publishStatus, read_count as readCount, sort,
+               create_by as createBy, create_time as createTime,
+               update_by as updateBy, update_time as updateTime, remark,
+               del_flag as delFlag
+        from dh_live_announcement
+        where del_flag = '0'
+    </sql>
+
+    <select id="selectAnnouncementById" parameterType="Long" resultType="map">
+        <include refid="selectAnnouncementVo"/>
+        and ann_id = #{annId}
+    </select>
+
+    <select id="selectAnnouncementList" resultType="map">
+        <include refid="selectAnnouncementVo"/>
+        <if test="keyword != null and keyword != ''">
+            AND (title like concat('%', #{keyword}, '%') OR summary like concat('%', #{keyword}, '%'))
+        </if>
+        <if test="publishStatus != null and publishStatus != ''">
+            AND publish_status = #{publishStatus}
+        </if>
+        order by is_pinned desc, sort asc, ann_id desc
+    </select>
+
+    <insert id="insertAnnouncement" parameterType="map">
+        insert into dh_live_announcement
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bizCode != null and bizCode != ''">biz_code,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="summary != null">summary,</if>
+            <if test="content != null">content,</if>
+            <if test="scope != null">scope,</if>
+            <if test="scopeIdsJson != null">scope_ids_json,</if>
+            <if test="isPinned != null">is_pinned,</if>
+            <if test="publishTime != null">publish_time,</if>
+            <if test="expireTime != null">expire_time,</if>
+            <if test="publishStatus != null">publish_status,</if>
+            <if test="readCount != null">read_count,</if>
+            <if test="sort != null">sort,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time,
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bizCode != null and bizCode != ''">#{bizCode},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="summary != null">#{summary},</if>
+            <if test="content != null">#{content},</if>
+            <if test="scope != null">#{scope},</if>
+            <if test="scopeIdsJson != null">#{scopeIdsJson},</if>
+            <if test="isPinned != null">#{isPinned},</if>
+            <if test="publishTime != null">#{publishTime},</if>
+            <if test="expireTime != null">#{expireTime},</if>
+            <if test="publishStatus != null">#{publishStatus},</if>
+            <if test="readCount != null">#{readCount},</if>
+            <if test="sort != null">#{sort},</if>
+            <if test="createBy != null">#{createBy},</if>
+            sysdate(),
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateAnnouncement" parameterType="map">
+        update dh_live_announcement
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="scope != null">scope = #{scope},</if>
+            <if test="scopeIdsJson != null">scope_ids_json = #{scopeIdsJson},</if>
+            <if test="isPinned != null">is_pinned = #{isPinned},</if>
+            <if test="publishTime != null">publish_time = #{publishTime},</if>
+            <if test="expireTime != null">expire_time = #{expireTime},</if>
+            <if test="publishStatus != null">publish_status = #{publishStatus},</if>
+            <if test="readCount != null">read_count = #{readCount},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where ann_id = ${annId}
+    </update>
+
+    <delete id="deleteAnnouncementById" parameterType="Long">
+        update dh_live_announcement set del_flag = '1', update_time = sysdate() where ann_id = #{annId}
+    </delete>
+
+    <delete id="deleteAnnouncementByIds" parameterType="String">
+        update dh_live_announcement set del_flag = '1', update_time = sysdate() where ann_id in
+        <foreach item="annId" collection="annIds" open="(" separator="," close=")">
+            #{annId}
+        </foreach>
+    </delete>
+
+    <update id="updateAnnouncementPublishStatus">
+        update dh_live_announcement set publish_status = #{publishStatus}, update_time = sysdate() where ann_id = #{annId}
+    </update>
+
+    <update id="updateAnnouncementPinned">
+        update dh_live_announcement set is_pinned = #{isPinned}, update_time = sysdate() where ann_id = #{annId}
+    </update>
+
+</mapper>

@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
-  title: 颐享健康直播学习平台 API (v1)
+  title: 典恒直播 APP API (v1)
   version: 0.1.0
   description: |
-    颐享健康私域直播培训平台 API 契约（v1 骨架）。
+    典恒直播私域直播培训平台 API 契约（v1 骨架）。
 
     **决策来源**：[docs/prd-v1.md](../../docs/prd-v1.md) §8
 

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dh.live.mapper.DhLiveRewardCodeMapper">
+
+    <resultMap type="map" id="DhLiveRewardCodeResult">
+    </resultMap>
+
+    <sql id="selectRewardCodeVo">
+        select code_id as codeId, item_id as itemId, code,
+               is_used as isUsed, used_by as usedBy, used_time as usedTime,
+               expire_time as expireTime, create_by as createBy,
+               create_time as createTime, update_time as updateTime,
+               remark, del_flag as delFlag
+        from dh_live_reward_code
+        where del_flag = '0'
+    </sql>
+
+    <select id="selectRewardCodeById" parameterType="Long" resultType="map">
+        <include refid="selectRewardCodeVo"/>
+        and code_id = #{codeId}
+    </select>
+
+    <select id="selectRewardCodeList" resultType="map">
+        <include refid="selectRewardCodeVo"/>
+        <if test="itemId != null">
+            AND item_id = #{itemId}
+        </if>
+        <if test="isUsed != null and isUsed != ''">
+            AND is_used = #{isUsed}
+        </if>
+        <if test="code != null and code != ''">
+            AND code like concat('%', #{code}, '%')
+        </if>
+        order by code_id desc
+    </select>
+
+    <insert id="insertRewardCode" parameterType="map">
+        insert into dh_live_reward_code
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="itemId != null">item_id,</if>
+            <if test="code != null and code != ''">code,</if>
+            <if test="isUsed != null">is_used,</if>
+            <if test="expireTime != null">expire_time,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time,
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="itemId != null">#{itemId},</if>
+            <if test="code != null and code != ''">#{code},</if>
+            <if test="isUsed != null">#{isUsed},</if>
+            <if test="expireTime != null">#{expireTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            sysdate(),
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateRewardCode" parameterType="map">
+        update dh_live_reward_code
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="itemId != null">item_id = #{itemId},</if>
+            <if test="code != null and code != ''">code = #{code},</if>
+            <if test="isUsed != null">is_used = #{isUsed},</if>
+            <if test="usedBy != null">used_by = #{usedBy},</if>
+            <if test="usedTime != null">used_time = #{usedTime},</if>
+            <if test="expireTime != null">expire_time = #{expireTime},</if>
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where code_id = ${codeId}
+    </update>
+
+    <delete id="deleteRewardCodeById" parameterType="Long">
+        update dh_live_reward_code set del_flag = '1', update_time = sysdate() where code_id = #{codeId}
+    </delete>
+
+    <delete id="deleteRewardCodeByIds" parameterType="String">
+        update dh_live_reward_code set del_flag = '1', update_time = sysdate() where code_id in
+        <foreach item="codeId" collection="codeIds" open="(" separator="," close=")">
+            #{codeId}
+        </foreach>
+    </delete>
+
+    <update id="useRewardCode">
+        update dh_live_reward_code
+        set is_used = '1',
+            used_by = #{memberId},
+            used_time = sysdate(),
+            update_time = sysdate()
+        where code_id = #{codeId}
+          and is_used = '0'
+    </update>
+
+    <select id="selectRewardCodeByCode" parameterType="String" resultType="map">
+        <include refid="selectRewardCodeVo"/>
+        and code = #{code}
+        limit 1
+    </select>
+
+</mapper>
